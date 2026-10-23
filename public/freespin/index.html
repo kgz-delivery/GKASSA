@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d1422">
+  <title>FLASH — Фриспины</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root { color-scheme: dark; --bg:#0d1422; --gold:#bdcde5; --text:#f1f5fb; --muted:#9aa9bf; --line:#34445d; }
+    * { box-sizing:border-box }
+    body { margin:0; min-height:100vh; color:var(--text); font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(ellipse at 50% 24%,#1d2a40 0,#121d30 43%,var(--bg) 82%); }
+    .page { width:min(100%,430px); margin:auto; padding:18px 18px 28px; }
+    header { height:36px; display:flex; align-items:center; justify-content:center; color:#d5e0f0; font-size:13px; font-weight:800; letter-spacing:.22em; }
+    .back { position:absolute; top:10px; margin-left:-4px; left:max(calc((100vw - 394px)/2),12px); width:40px; height:40px; border:1px solid var(--line); border-radius:50%; background:#172235; color:#e6edf7; font-size:24px; cursor:pointer; }
+    h1 { margin:8px 0 2px; text-align:center; font-size:34px; line-height:1.1; letter-spacing:.045em; font-weight:800; }
+    .subtitle { margin:9px 0 18px; text-align:center; color:var(--muted); font-size:13px; }
+    .wheel-area { position:relative; width:min(92vw,390px); aspect-ratio:1; margin:0 auto 18px; display:grid; place-items:center; }
+    .outer-ring { position:absolute; inset:0; border:3px solid #aebed5; border-radius:50%; box-shadow:0 0 0 5px #8ea2bf22,0 0 28px #879bb522; }
+    .wheel { position:absolute; inset:13px; border-radius:50%; overflow:hidden; border:5px solid #7185a2; background:conic-gradient(from -22.5deg,#26354c 0deg 45deg,#405878 45deg 90deg,#2d3d56 90deg 135deg,#4a6384 135deg 180deg,#293951 180deg 225deg,#3f5675 225deg 270deg,#26364e 270deg 315deg,#506b8b 315deg 360deg); box-shadow:inset 0 0 0 3px #d8e3f022,inset 0 0 28px #080d1699; will-change:transform; }
+    .wheel:after { content:""; position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle,transparent 55%,#fff2 56%,transparent 58%); }
+    .wheel-labels { position:absolute; inset:13px; z-index:1; pointer-events:none; will-change:transform; }
+    .wheel-label { position:absolute; top:50%; left:50%; width:78px; margin:-10px 0 0 -39px; transform:rotate(var(--angle)) translateY(-112px) rotate(var(--counter)); color:#fff; font-size:12px; line-height:1.15; font-weight:950; text-align:center; text-shadow:0 2px 5px #111,0 0 8px #111; }
+    .pointer { position:absolute; top:-4px; left:50%; z-index:4; transform:translateX(-50%); width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:30px solid var(--gold); filter:drop-shadow(0 2px 3px #0009); }
+    .wheel-area.spinning .outer-ring { animation:ringPulse .7s ease-in-out infinite alternate; }
+    .wheel-area.spinning .pointer { animation:pointerTick .12s ease-in-out infinite alternate; transform-origin:50% 0; }
+    .wheel-area.spinning .hub { animation:hubPulse .8s ease-in-out infinite alternate; }
+    @keyframes ringPulse { from { box-shadow:0 0 0 5px #8ea2bf22,0 0 22px #879bb522; } to { box-shadow:0 0 0 8px #b9c9e044,0 0 42px #b8cbe777; } }
+    @keyframes pointerTick { from { transform:translateX(-50%) rotate(-4deg); } to { transform:translateX(-50%) rotate(4deg); } }
+    @keyframes hubPulse { from { box-shadow:0 5px 22px #080d1688; } to { box-shadow:0 0 34px #cad9ed88; } }
+    .hub { z-index:2; width:27%; aspect-ratio:1; border:4px solid #bdcde5; border-radius:50%; background:radial-gradient(circle at 35% 30%,#6d83a4,#3d5271 60%,#1b2a40); box-shadow:0 5px 22px #080d1688; display:grid;place-items:center; font-size:15px;font-weight:800;letter-spacing:.04em; }
+    .spin { display:block; margin:0 auto 17px; width:min(100%,250px); height:50px; border:1px solid #d0dbea; border-radius:15px; color:#172235; background:linear-gradient(110deg,#d3deec,#a9bdd8); font-size:14px; font-weight:800; letter-spacing:.035em; cursor:pointer; box-shadow:0 7px 22px #050a142e; }
+    .spin:disabled { opacity:.65; cursor:wait; }
+    .perks { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .perk { min-height:84px; padding:10px 5px; text-align:center; border:1px solid var(--line); border-radius:16px; background:linear-gradient(150deg,#1b293e,#141e30); }
+    .perk b { display:block; margin:3px 0; font-size:13px; }.perk small{color:var(--muted);font-size:11px}.icon{font-size:19px}
+    .jackpot { margin-top:12px; padding:16px; border:1px solid var(--line); border-radius:18px; background:linear-gradient(140deg,#1a293d,#141e30); }
+    .jackpot strong { display:block; text-align:center; font-size:16px; }.jackpot p { margin:9px 0 0; color:#d3d6e2; font-size:12px; }
+    .note { min-height:20px; margin:10px 0 0; text-align:center; color:#c2d2e8; font-size:13px; }
+    .status { margin:14px 0; padding:12px 14px; border:1px solid var(--line); border-radius:14px; background:#172235; color:#b0bdd0; text-align:center; font-size:12px; }
+    .invite { display:block; margin:12px auto 0; width:100%; height:44px; border:1px solid #607694; border-radius:13px; background:#26374f; color:#e1eaf5; font-size:13px; font-weight:700; cursor:pointer; }
+    @media (max-width:360px) { h1{font-size:30px}.wheel-label{font-size:10px;width:70px;margin-left:-35px}.page{padding-left:13px;padding-right:13px} }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <button class="back" type="button" aria-label="Назад" onclick="history.back()">‹</button>
+    <header>FLASH</header>
+    <h1>ФРИСПИН</h1>
+    <p class="subtitle">Получайте спины за пополнения и каждый день</p>
+    <section class="wheel-area" aria-label="Колесо призов">
+      <div class="outer-ring"></div>
+      <div class="wheel" id="wheel"></div>
+      <div class="wheel-labels" id="wheel-labels" aria-hidden="true">
+        <span class="wheel-label" style="--angle:0deg;--counter:0deg">БЕЗ<br>ВЫИГРЫША</span>
+        <span class="wheel-label" style="--angle:45deg;--counter:-45deg">35 сом</span>
+        <span class="wheel-label" style="--angle:90deg;--counter:-90deg">БЕЗ<br>ВЫИГРЫША</span>
+        <span class="wheel-label" style="--angle:135deg;--counter:-135deg">50 сом</span>
+        <span class="wheel-label" style="--angle:180deg;--counter:-180deg">БЕЗ<br>ВЫИГРЫША</span>
+        <span class="wheel-label" style="--angle:225deg;--counter:-225deg">65 сом</span>
+        <span class="wheel-label" style="--angle:270deg;--counter:-270deg">БЕЗ<br>ВЫИГРЫША</span>
+        <span class="wheel-label" style="--angle:315deg;--counter:-315deg">80 сом</span>
+      </div>
+      <div class="hub">FLASH</div><div class="pointer"></div>
+    </section>
+    <div class="status" id="status">Проверяем доступные спины…</div>
+    <button class="spin" id="spin" type="button" disabled>ЗАГРУЗКА…</button>
+    <p class="note" id="note" aria-live="polite"></p>
+    <section class="perks" aria-label="Условия">
+      <div class="perk"><span class="icon">💳</span><b>1 спин</b><small>За каждые 100 сом пополнения</small></div>
+      <div class="perk"><span class="icon">🗓️</span><b>1 в сутки</b><small>Бесплатный спин</small></div>
+    </section>
+    <section class="jackpot">
+      <strong>Пригласите друга</strong>
+      <p>За каждого нового друга, который запустит бота по вашей ссылке, получите 1 спин. Когда он накопит 100 сом подтверждённых пополнений, получите ещё 1 спин.</p>
+      <button class="invite" id="invite" type="button">👥 Пригласить друга</button>
+    </section>
+  </main>
+  <script>
+    const wheel = document.getElementById('wheel');
+    const wheelLabels = document.getElementById('wheel-labels');
+    const button = document.getElementById('spin');
+    const note = document.getElementById('note');
+    const status = document.getElementById('status');
+    const invite = document.getElementById('invite');
+    const wheelArea = document.querySelector('.wheel-area');
+    const tg = window.Telegram?.WebApp;
+    let rotation = 0;
+    let spinStatus = null;
+    const spinCenters = { no_win: 0, '35': 45, '50': 135, '65': 225, '80': 315 };
+
+    if (tg) { tg.ready(); tg.expand(); }
+
+    async function api(path, method = 'GET') {
+      const response = await fetch(path, {
+        method,
+        headers: { 'X-Telegram-Init-Data': tg?.initData || '', 'Content-Type': 'application/json' },
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || 'Не удалось связаться с ботом.');
+      return body;
+    }
+
+    function updateStatus() {
+      if (!spinStatus) return;
+      const total = spinStatus.availableTopup + spinStatus.availableReferral + (spinStatus.dailyReady ? 1 : 0);
+      const dailyText = spinStatus.dailyReady
+        ? 'Бесплатный спин доступен'
+        : `Следующий бесплатный спин: ${new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(spinStatus.nextDailyAt)}`;
+      status.textContent = `За пополнения: ${spinStatus.availableTopup} · За приглашения: ${spinStatus.availableReferral} · ${dailyText}`;
+      button.disabled = total < 1;
+      button.textContent = total ? 'КРУТИТЬ КОЛЕСО' : 'СПИН ПОКА НЕДОСТУПЕН';
+      invite.disabled = !spinStatus.referralLink;
+    }
+
+    async function loadStatus() {
+      spinStatus = await api('/api/spins');
+      updateStatus();
+    }
+
+    button.addEventListener('click', async () => {
+      if (button.disabled) return;
+      button.disabled = true;
+      note.textContent = '';
+      try {
+        const result = await api('/api/spin', 'POST');
+        const noWinCenters = [0, 90, 180, 270];
+        const center = result.prizeKey === 'no_win'
+          ? noWinCenters[Math.floor(Math.random() * noWinCenters.length)]
+          : (spinCenters[result.prizeKey] ?? spinCenters.no_win);
+        const remainder = ((360 - (rotation % 360) - center) % 360 + 360) % 360;
+        const start = rotation;
+        const fullTurns = (5 + Math.floor(Math.random() * 3)) * 360;
+        const stopOffset = Math.random() * 30 - 15;
+        const target = start + fullTurns + remainder + stopOffset;
+        const duration = 7000;
+        const keyframes = [
+          { transform: `rotate(${start}deg)` },
+          { transform: `rotate(${target}deg)` },
+        ];
+        wheelArea.classList.add('spinning');
+        if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+        const animationOptions = {
+          duration,
+          fill: 'forwards',
+          easing: 'cubic-bezier(.12,.78,.18,1)',
+        };
+        const wheelAnimation = wheel.animate(keyframes, animationOptions);
+        const labelsAnimation = wheelLabels.animate(keyframes, animationOptions);
+        await Promise.all([wheelAnimation.finished, labelsAnimation.finished]);
+        rotation = target;
+        const finalTransform = `rotate(${rotation}deg)`;
+        wheel.style.transform = finalTransform;
+        wheelLabels.style.transform = finalTransform;
+        wheelAnimation.cancel();
+        labelsAnimation.cancel();
+        wheelArea.classList.remove('spinning');
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred(result.amount > 0 ? 'success' : 'warning');
+        note.textContent = result.forcedLoss
+          ? `Всего попыток: ${result.spinNumber}. Возвращайся в следующий раз!`
+          : result.amount > 0
+            ? `🎉 Вы выиграли ${result.amount} сом! Администратор свяжется с вами для выдачи приза.`
+            : 'В этот раз без выигрыша. Бесплатный спин будет доступен через 24 часа.';
+        await loadStatus().catch(() => {});
+      } catch (error) {
+        wheelArea.classList.remove('spinning');
+        note.textContent = error.message;
+        await loadStatus().catch(() => {});
+        if (!spinStatus) button.disabled = false;
+      }
+    });
+
+    invite.addEventListener('click', () => {
+      if (!spinStatus?.referralLink) {
+        note.textContent = 'Не удалось загрузить ссылку приглашения. Закройте и снова откройте приложение.';
+        return;
+      }
+      const share = `https://t.me/share/url?url=${encodeURIComponent(spinStatus.referralLink)}&text=${encodeURIComponent('Присоединяйся к FLASH!')}`;
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(share);
+      } else {
+        window.open(share, '_blank', 'noopener');
+      }
+    });
+
+    loadStatus().catch((error) => {
+      status.textContent = error.message;
+      button.disabled = true;
+      button.textContent = 'ОТКРОЙТЕ ИЗ БОТА';
+    });
+  </script>
+</body>
+</html>
