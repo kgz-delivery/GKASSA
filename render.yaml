@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: flash-gkassa-web
+    runtime: node
+    plan: 0.5c-512mb
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    disk:
+      name: flash-gkassa-web-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /var/data/gkassa.db
+      - key: BOT_TOKEN
+        sync: false
+      - key: BOT_ENABLED
+        value: "1"
+      - key: CHANNEL_TOPUP_ID
+        sync: false
+      - key: CHANNEL_WITHDRAW_ID
+        sync: false
+      - key: ADMIN_TELEGRAM_IDS
+        sync: false
+      - key: REQUIRED_SUBSCRIPTION_CHANNEL_ID
+        sync: false
