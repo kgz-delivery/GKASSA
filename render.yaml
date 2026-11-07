@@ -1,0 +1,82 @@
+services:
+  - type: web
+    name: flash-gkassa-web
+    runtime: node
+    plan: 0.5c-512mb
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    disk:
+      name: flash-gkassa-web-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /var/data/gkassa.db
+      - key: PAYMENT_DEVICE_TOKEN
+        sync: false
+      - key: OPTIMA_PACKAGE_NAME
+        value: kz.optimabank.optima24
+      - key: ORDER_TTL_MINUTES
+        value: "10"
+      - key: ORDER_GRACE_MINUTES
+        value: "30"
+      # Empty means all matched payments go to manual review until configured.
+      - key: AUTO_CONFIRM_MAX_SOM
+        value: ""
+      - key: OPERATOR_MANUAL_MAX_SOM
+        value: ""
+      - key: OPERATOR_DAILY_LIMIT_SOM
+        value: ""
+      - key: BOT_TOKEN
+        sync: false
+      - key: BOT_ENABLED
+        value: "1"
+      - key: CHANNEL_TOPUP_ID
+        sync: false
+      - key: CHANNEL_WITHDRAW_ID
+        sync: false
+      - key: ADMIN_TELEGRAM_IDS
+        sync: false
+      - key: REQUIRED_SUBSCRIPTION_CHANNEL_ID
+        sync: false
+      - key: MOBCASH_ENABLED
+        sync: false
+      - key: MOBCASH_DRY_RUN
+        value: "1"
+      - key: MOBCASH_BOOKMAKERS
+        sync: false
+      - key: MOBCASH_1XBET_CASHBOX_CODE
+        sync: false
+      - key: MOBCASH_1XBET_LOGIN
+        sync: false
+      - key: MOBCASH_1XBET_PASSWORD
+        sync: false
+      - key: MOBCASH_1XBET_BASE_URL
+        sync: false
+      # - key: MOBCASH_MELBET_CASHBOX_CODE
+      #   sync: false
+      # - key: MOBCASH_MELBET_LOGIN
+      #   sync: false
+      # - key: MOBCASH_MELBET_PASSWORD
+      #   sync: false
+      # - key: MOBCASH_MELBET_BASE_URL
+      #   sync: false
+      # - key: MOBCASH_1WIN_CASHBOX_CODE
+      #   sync: false
+      # - key: MOBCASH_1WIN_LOGIN
+      #   sync: false
+      # - key: MOBCASH_1WIN_PASSWORD
+      #   sync: false
+      # - key: MOBCASH_1WIN_BASE_URL
+      #   sync: false
+      # - key: MOBCASH_MOSTBET_CASHBOX_CODE
+      #   sync: false
+      # - key: MOBCASH_MOSTBET_LOGIN
+      #   sync: false
+      # - key: MOBCASH_MOSTBET_PASSWORD
+      #   sync: false
+      # - key: MOBCASH_MOSTBET_BASE_URL
+      #   sync: false
